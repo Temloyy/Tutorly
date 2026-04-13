@@ -1,0 +1,39 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sys-neutral-colour-role);
+}
+
+.input {
+  padding: 12px 16px;
+  border: 1px solid var(--sys-color-grey03);
+  border-radius: 6px;
+  outline: none;
+  background-color: var(--sys-on-primary-colour-role);
+  color: var(--sys-on-neutral-container-colour-role);
+  transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.input:hover {
+  background-color: var(--sys-primary-container-colour-role);
+}
+
+.input:focus {
+  border-color: var(--sys-primary-colour-role);
+}
+
+.errorInput {
+  border-color: #ef4444; /* error color */
+  background-color: #fef2f2;
+}
+
+.errorText {
+  font-size: 12px;
+  color: #ef4444;
+}

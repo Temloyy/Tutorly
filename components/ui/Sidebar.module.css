@@ -1,0 +1,260 @@
+.container {
+  display: flex;
+  height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
+  background-color: var(--sys-on-primary-colour-role, #fff); /* Fallback to white if var not set globally correctly for backgrounds */
+  border-right: 1px solid var(--sys-color-grey03, #d1d5db);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.3s ease, transform 0.3s ease;
+  z-index: 50;
+  overflow-y: auto;
+}
+
+.sidebar.expanded {
+  width: 250px;
+}
+
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* Header Sections */
+.header {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerCollapsed {
+  padding: 24px 0;
+  justify-content: center;
+}
+
+.brand {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--sys-primary-colour-role);
+  text-decoration: none;
+}
+
+.brandIcon {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--sys-primary-colour-role);
+  text-decoration: none;
+}
+
+.toggleBtn {
+  background: none;
+  border: none;
+  color: var(--sys-neutral-colour-role);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  border-radius: 4px;
+}
+
+.toggleBtn:hover {
+  background-color: var(--sys-neutral-container-colour-role);
+}
+
+/* Navigation List */
+.navSection {
+  flex: 1;
+  padding: 0 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.navItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: var(--sys-color-grey04, #6b6b6b);
+  font-size: var(--sys-typography-body-3-font-size, 16px);
+  font-weight: 500;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.navItemCollapsed {
+  justify-content: center;
+  padding: 12px 0;
+}
+
+.navItem:hover {
+  background-color: var(--sys-neutral-container-colour-role, #f5f5f5);
+  color: var(--sys-neutral-colour-role);
+}
+
+.navItem.active {
+  background-color: var(--sys-primary-container-colour-role, #ebf5ff);
+  color: var(--sys-primary-colour-role, #0466c8);
+  font-weight: 600;
+}
+
+.navIcon {
+  font-size: 20px;
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-left: 12px;
+  padding: 6px 12px;
+  background-color: var(--sys-neutral-colour-role, #212121);
+  color: var(--sys-on-neutral-colour-role, #fff);
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+  z-index: 100;
+}
+
+.navItem:hover .tooltip {
+  opacity: 1;
+}
+
+/* Secondary Nav */
+.secondaryNav {
+  padding: 0 16px;
+  margin-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* User Section */
+.userSection {
+  padding: 24px 16px;
+  border-top: 1px solid var(--sys-color-grey03, #d1d5db);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  cursor: pointer;
+}
+
+.userSectionCollapsed {
+  justify-content: center;
+  padding: 24px 0;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: var(--sys-primary-colour-role, #0466c8);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.userInfo {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.userName {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--sys-neutral-colour-role);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.userRole {
+  font-size: 12px;
+  color: var(--sys-color-grey04);
+  text-transform: capitalize;
+}
+
+.userDropdown {
+  margin-left: auto;
+  color: var(--sys-color-grey04);
+}
+
+/* Mobile Trigger */
+.mobileTrigger {
+  display: none;
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 40;
+  background-color: var(--sys-on-primary-colour-role, #fff);
+  border: 1px solid var(--sys-color-grey03);
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.overlay {
+  display: none;
+}
+
+/* Responsive Rules */
+@media (max-width: 1024px) {
+  /* Tablet defaults to collapsed, but we handle state in React */
+}
+
+@media (max-width: 768px) {
+  .mobileTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .sidebar {
+    transform: translateX(-100%);
+    width: 250px !important; /* Force expanded width when open on mobile */
+  }
+
+  .sidebar.mobileOpen {
+    transform: translateX(0);
+  }
+
+  .overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 45;
+  }
+
+  .overlay.mobileOpen {
+    display: block;
+  }
+
+  /* Hide toggle button on mobile since overlay closes it */
+  .toggleBtn {
+    display: none;
+  }
+}

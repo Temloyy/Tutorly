@@ -1,0 +1,7 @@
+.card {
+  background-color: var(--sys-on-primary-colour-role);
+  border: 1px solid var(--sys-color-grey03);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: none;
+}

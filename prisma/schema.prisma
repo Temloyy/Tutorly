@@ -1,0 +1,300 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  STUDENT
+  TUTOR
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  CANCELLED
+  COMPLETED
+  FAILED
+}
+
+enum SessionStatus {
+  SCHEDULED
+  ACTIVE
+  COMPLETED
+  MISSED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+  REFUNDED
+}
+
+enum NotificationType {
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  SESSION_REMINDER
+  PAYMENT_SUCCESS
+  PAYMENT_FAILED
+  REVIEW_REQUEST
+  MESSAGE_RECEIVED
+}
+
+enum MessageStatus {
+  SENT
+  DELIVERED
+  READ
+}
+
+enum EventType {
+  USER_REGISTERED
+  PROFILE_UPDATED
+  BOOKING_CREATED
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  SESSION_STARTED
+  SESSION_COMPLETED
+  PAYMENT_PROCESSED
+  REVIEW_SUBMITTED
+}
+
+model User {
+  id            String    @id @default(uuid())
+  name          String
+  email         String    @unique
+  password_hash String
+  role          UserRole
+  is_active     Boolean   @default(true)
+  timezone      String
+  created_at    DateTime  @default(now())
+  updated_at    DateTime  @updatedAt
+  deleted_at    DateTime?
+
+  sessions      Session[]
+  tutorProfile  TutorProfile?
+  studentBookings Booking[]     @relation("StudentBookings")
+  notifications Notification[]
+  activityLogs  ActivityLog[]
+  reviews       Review[]      @relation("StudentReviews")
+  savedTutors   SavedTutor[]
+  sentMessages  Message[]     @relation("SentMessages")
+  conversations ConversationParticipant[]
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  user_id     String
+  token_hash  String   @unique
+  expires_at  DateTime
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user        User     @relation(fields: [user_id], references: [id])
+}
+
+model TutorProfile {
+  id              String   @id @default(uuid())
+  user_id         String   @unique
+  bio             String
+  hourly_rate     Float
+  rating_avg      Float    @default(0.0)
+  total_reviews   Int      @default(0)
+  is_verified     Boolean  @default(false)
+  response_rate   Float    @default(0.0)
+  completion_rate Float    @default(0.0)
+  created_at      DateTime @default(now())
+  updated_at      DateTime @updatedAt
+  deleted_at      DateTime?
+
+  user            User     @relation(fields: [user_id], references: [id])
+  subjects        TutorSubject[]
+  availability    AvailabilitySlot[]
+  bookings        Booking[] @relation("TutorBookings")
+  reviews         Review[]  @relation("TutorReviews")
+  savedBy         SavedTutor[]
+
+  @@index([rating_avg])
+}
+
+model Subject {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  created_at DateTime @default(now())
+
+  tutors     TutorSubject[]
+}
+
+model TutorSubject {
+  id               String   @id @default(uuid())
+  tutor_profile_id String
+  subject_id       String
+
+  tutorProfile     TutorProfile @relation(fields: [tutor_profile_id], references: [id])
+  subject          Subject      @relation(fields: [subject_id], references: [id])
+
+  @@unique([tutor_profile_id, subject_id])
+}
+
+model AvailabilitySlot {
+  id               String   @id @default(uuid())
+  tutor_profile_id String
+  day_of_week      Int      // 0-6
+  start_time       String   // "HH:mm"
+  end_time         String   // "HH:mm"
+  timezone         String
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+
+  tutorProfile     TutorProfile @relation(fields: [tutor_profile_id], references: [id])
+}
+
+model Booking {
+  id               String   @id @default(uuid())
+  student_id       String
+  tutor_profile_id String
+  subject_id       String?
+  scheduled_at     DateTime
+  duration_minutes Int
+  status           BookingStatus @default(PENDING)
+  price            Float
+  created_at       DateTime @default(now())
+  updated_at       DateTime @updatedAt
+  deleted_at       DateTime?
+
+  student          User         @relation("StudentBookings", fields: [student_id], references: [id])
+  tutorProfile     TutorProfile @relation("TutorBookings", fields: [tutor_profile_id], references: [id])
+
+  payment          Payment?
+  liveSession      SessionLive?
+  review           Review?
+
+  @@unique([tutor_profile_id, scheduled_at])
+  @@index([student_id])
+  @@index([tutor_profile_id])
+  @@index([status])
+}
+
+model Payment {
+  id                  String   @id @default(uuid())
+  booking_id          String   @unique
+  amount              Float
+  currency            String
+  status              PaymentStatus @default(PENDING)
+  payment_provider_id String   @unique
+  created_at          DateTime @default(now())
+  updated_at          DateTime @updatedAt
+
+  booking             Booking  @relation(fields: [booking_id], references: [id])
+}
+
+model SessionLive {
+  id         String   @id @default(uuid())
+  booking_id String   @unique
+  status     SessionStatus @default(SCHEDULED)
+  started_at DateTime?
+  ended_at   DateTime?
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  booking    Booking  @relation(fields: [booking_id], references: [id])
+}
+
+model Review {
+  id               String   @id @default(uuid())
+  booking_id       String   @unique
+  student_id       String
+  tutor_profile_id String
+  rating           Int
+  comment          String?
+  created_at       DateTime @default(now())
+
+  booking          Booking  @relation(fields: [booking_id], references: [id])
+  student          User     @relation("StudentReviews", fields: [student_id], references: [id])
+  tutorProfile     TutorProfile @relation("TutorReviews", fields: [tutor_profile_id], references: [id])
+}
+
+model SavedTutor {
+  id               String   @id @default(uuid())
+  student_id       String
+  tutor_profile_id String
+  created_at       DateTime @default(now())
+
+  student          User         @relation(fields: [student_id], references: [id])
+  tutorProfile     TutorProfile @relation(fields: [tutor_profile_id], references: [id])
+
+  @@unique([student_id, tutor_profile_id])
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  user_id    String
+  type       NotificationType
+  message    String
+  is_read    Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  user       User     @relation(fields: [user_id], references: [id])
+}
+
+model ActivityLog {
+  id            String   @id @default(uuid())
+  user_id       String?
+  event_type    EventType
+  metadata_json String
+  created_at    DateTime @default(now())
+
+  user          User?    @relation(fields: [user_id], references: [id])
+}
+
+model Conversation {
+  id         String   @id @default(uuid())
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id              String   @id @default(uuid())
+  conversation_id String
+  user_id         String
+  joined_at       DateTime @default(now())
+
+  conversation    Conversation @relation(fields: [conversation_id], references: [id])
+  user            User         @relation(fields: [user_id], references: [id])
+
+  @@unique([conversation_id, user_id])
+}
+
+model Message {
+  id              String        @id @default(uuid())
+  conversation_id String
+  sender_id       String
+  body            String
+  status          MessageStatus @default(SENT)
+  created_at      DateTime      @default(now())
+  updated_at      DateTime      @updatedAt
+  deleted_at      DateTime?
+
+  conversation    Conversation  @relation(fields: [conversation_id], references: [id])
+  sender          User          @relation("SentMessages", fields: [sender_id], references: [id])
+
+  @@index([conversation_id])
+  @@index([sender_id])
+}
+
+model AnalyticsSnapshot {
+  id                       String   @id @default(uuid())
+  date                     DateTime @unique
+  total_bookings           Int      @default(0)
+  total_revenue            Float    @default(0.0)
+  total_sessions_completed Int      @default(0)
+  created_at               DateTime @default(now())
+}
